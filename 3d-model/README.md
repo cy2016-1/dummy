@@ -3,3 +3,6 @@
 - You have to take your own risk to practice these models
 - Send your feedback is always welcome!
 - J6末端对精度要求不高，正在考虑用个成本更低的28行星减速器，
+
+231208FAN
+添加stp文件和dxf文件其他文件仅供参考
