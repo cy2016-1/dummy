@@ -1,15 +1,43 @@
 #include "6dof_kinematic.h"
 
+/**
+ * Calculates the cosine of a given angle.
+ *
+ * @param x the angle in radians
+ *
+ * @return the cosine value of the angle
+ *
+ * @throws None
+ */
 inline float cosf(float x)
 {
     return arm_cos_f32(x);
 }
 
+/**
+ * Calculates the sine of a given float value.
+ *
+ * @param x the input value in radians
+ *
+ * @return the sine value of the input
+ *
+ * @throws ErrorType if there is an error in calculating the sine value
+ */
 inline float sinf(float x)
 {
     return arm_sin_f32(x);
 }
 
+/**
++ * 将两个矩阵相乘并将结果存储在第三个矩阵中。
++ *
++ * @param _matrix1 指向第一个矩阵的指针
++ * @param _matrix2 指向第二个矩阵的指针
++ * @param _matrixOut 指向输出矩阵的指针
++ * @param _m 第一个矩阵的行数
++ * @param _l 第一个矩阵的列数和第二个矩阵的行数
++ * @param _n 第二个矩阵的列数
++ */
 static void MatMultiply(const float* _matrix1, const float* _matrix2, float* _matrixOut,
                         const int _m, const int _l, const int _n)
 {
@@ -29,6 +57,14 @@ static void MatMultiply(const float* _matrix1, const float* _matrix2, float* _ma
     }
 }
 
+/**
++ * 将旋转矩阵转换为欧拉角。
++ *
++ * @param _rotationM 指向表示旋转矩阵的数组的指针
++ * @param _eulerAngles 指向存储欧拉角的数组的指针
++ *
++ * @throws 无
++ */
 static void RotMatToEulerAngle(const float* _rotationM, float* _eulerAngles)
 {
     float A, B, C, cb;
@@ -59,6 +95,19 @@ static void RotMatToEulerAngle(const float* _rotationM, float* _eulerAngles)
     _eulerAngles[2] = A;
 }
 
+/**
+ * Converts Euler angles to a rotation matrix.
+ *
+ * @param _eulerAngles An array of three floats representing the Euler angles.
+ *                     The order of the angles is pitch, yaw, roll.
+ *
+ * @param _rotationM   A pointer to an array of nine floats representing the
+ *                     rotation matrix. The matrix is stored in row-major order.
+ *                     The resulting rotation matrix will be stored in this array.
+ *                     The array must have a length of at least 9.
+ *
+ * @throws None
+ */
 static void EulerAngleToRotMat(const float* _eulerAngles, float* _rotationM)
 {
     float ca, cb, cc, sa, sb, sc;
@@ -82,6 +131,18 @@ static void EulerAngleToRotMat(const float* _eulerAngles, float* _rotationM)
 }
 
 
+/**
+ * Initializes a DOF6Kinematic object with the given parameters.
+ *
+ * @param L_BS the length of the base segment
+ * @param D_BS the depth of the base segment
+ * @param L_AM the length of the arm segment
+ * @param L_FA the length of the forearm segment
+ * @param D_EW the depth of the elbow segment
+ * @param L_WT the length of the wrist segment
+ *
+ * @throws None
+ */
 DOF6Kinematic::DOF6Kinematic(float L_BS, float D_BS, float L_AM, float L_FA, float D_EW, float L_WT)
     : armConfig(ArmConfig_t{L_BS, D_BS, L_AM, L_FA, D_EW, L_WT})
 {
@@ -111,6 +172,26 @@ DOF6Kinematic::DOF6Kinematic(float L_BS, float D_BS, float L_AM, float L_FA, flo
     atan_e = 0;
 }
 
+/**
+ * Calculates the forward kinematics of a 6-degree-of-freedom (DOF) robot arm.
+ *
+ * @param _inputJoint6D the joint angles of the robot arm in radians
+ * @param _outputPose6D the resulting pose of the end effector in 6D space
+ *
+ * @return true if the forward kinematics were successfully computed, false otherwise
+ *
+ * @throws None
+ */
+/**
+ * 计算6自由度机械臂的正向运动学。
+ *
+ * @param _inputJoint6D 机械臂的关节角度（弧度）
+ * @param _outputPose6D 末端执行器的位置姿态（6D空间）
+ *
+ * @return 如果成功计算正向运动学，则返回true；否则返回false
+ *
+ * @throws 无
+ */
 bool
 DOF6Kinematic::SolveFK(const DOF6Kinematic::Joint6D_t &_inputJoint6D, DOF6Kinematic::Pose6D_t &_outputPose6D)
 {
@@ -178,7 +259,15 @@ DOF6Kinematic::SolveFK(const DOF6Kinematic::Joint6D_t &_inputJoint6D, DOF6Kinema
 
     return true;
 }
-
+/**
+ * @brief 使用逆运动学求解机械臂的关节角度解
+ * 
+ * @param _inputPose6D 输入的机械臂姿势，包括位置和姿势信息
+ * @param _lastJoint6D 上一个关节状态，包括关节角度信息
+ * @param _outputSolves 存储计算出的关节角度解的数据结构
+ * @return true 如果成功计算出关节角度解
+ * @return false 如果计算失败或出现错误
+ */
 bool DOF6Kinematic::SolveIK(const DOF6Kinematic::Pose6D_t &_inputPose6D, const Joint6D_t &_lastJoint6D,
                             DOF6Kinematic::IKSolves_t &_outputSolves)
 {
@@ -498,6 +587,26 @@ bool DOF6Kinematic::SolveIK(const DOF6Kinematic::Pose6D_t &_inputPose6D, const J
     return true;
 }
 
+/**
+ * Subtracts two Joint6D_t objects and returns the result.
+ *
+ * @param _joints1 The first Joint6D_t object to be subtracted.
+ * @param _joints2 The second Joint6D_t object to be subtracted.
+ *
+ * @return The result of subtracting _joints2 from _joints1.
+ *
+ * @throws None.
+ */
+/**
+ * 函数描述：计算两个 Joint6D_t 对象的差并返回结果。
+ *
+ * @param _joints1 第一个 Joint6D_t 对象。
+ * @param _joints2 第二个 Joint6D_t 对象。
+ *
+ * @return 从 _joints2 中减去 _joints1 的结果。
+ *
+ * @throws 无。
+ */
 DOF6Kinematic::Joint6D_t
 operator-(const DOF6Kinematic::Joint6D_t &_joints1, const DOF6Kinematic::Joint6D_t &_joints2)
 {
