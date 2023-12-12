@@ -1,6 +1,16 @@
 #include "communication.hpp"
 #include "dummy_robot.h"
 
+/**
+ * Calculates the absolute maximum value of an array of 6 floating-point numbers and returns it.
+ *
+ * @param _joints the array of 6 floating-point numbers
+ * @param _index a reference to the variable that will store the index of the maximum value
+ *
+ * @return the absolute maximum value of the array
+ *
+ * @throws None
+ */
 inline float AbsMaxOf6(DOF6Kinematic::Joint6D_t _joints, uint8_t &_index)
 {
     float max = -1;
@@ -17,6 +27,15 @@ inline float AbsMaxOf6(DOF6Kinematic::Joint6D_t _joints, uint8_t &_index)
 }
 
 
+/**
+ * Constructor for the DummyRobot class.
+ *
+ * @param _hcan Pointer to the CAN_HandleTypeDef structure.
+ *
+ * @return None.
+ *
+ * @throws None.
+ */
 DummyRobot::DummyRobot(CAN_HandleTypeDef* _hcan) :
     hcan(_hcan)
 {
@@ -33,6 +52,13 @@ DummyRobot::DummyRobot(CAN_HandleTypeDef* _hcan) :
 }
 
 
+/**
+ * Destructor for the DummyRobot class.
+ *
+ * Deletes the motorJ array and hand object, as well as the dof6Solver object.
+ *
+ * @throws None
+ */
 DummyRobot::~DummyRobot()
 {
     for (int j = 0; j <= 6; j++)
@@ -43,6 +69,15 @@ DummyRobot::~DummyRobot()
 }
 
 
+/**
+ * Initializes the DummyRobot.
+ *
+ * @param None
+ *
+ * @return None
+ *
+ * @throws None
+ */
 void DummyRobot::Init()
 {
     SetCommandMode(DEFAULT_COMMAND_MODE);
@@ -50,6 +85,15 @@ void DummyRobot::Init()
 }
 
 
+/**
+ * Reboots the DummyRobot.
+ *
+ * @param None
+ *
+ * @return None
+ *
+ * @throws None
+ */
 void DummyRobot::Reboot()
 {
     motorJ[ALL]->Reboot();
@@ -58,6 +102,13 @@ void DummyRobot::Reboot()
 }
 
 
+/**
+ * Moves the joints of the DummyRobot.
+ *
+ * @param _joints the target joint positions
+ *
+ * @throws ErrorType if an error occurs while moving the joints
+ */
 void DummyRobot::MoveJoints(DOF6Kinematic::Joint6D_t _joints)
 {
     for (int j = 1; j <= 6; j++)
@@ -68,6 +119,20 @@ void DummyRobot::MoveJoints(DOF6Kinematic::Joint6D_t _joints)
 }
 
 
+/**
+ * Moves the robot to the specified joint positions.
+ *
+ * @param _j1 The position of joint 1.
+ * @param _j2 The position of joint 2.
+ * @param _j3 The position of joint 3.
+ * @param _j4 The position of joint 4.
+ * @param _j5 The position of joint 5.
+ * @param _j6 The position of joint 6.
+ *
+ * @return True if the robot successfully moves to the target joint positions, false otherwise.
+ *
+ * @throws None.
+ */
 bool DummyRobot::MoveJ(float _j1, float _j2, float _j3, float _j4, float _j5, float _j6)
 {
     DOF6Kinematic::Joint6D_t targetJointsTmp(_j1, _j2, _j3, _j4, _j5, _j6);
@@ -102,6 +167,20 @@ bool DummyRobot::MoveJ(float _j1, float _j2, float _j3, float _j4, float _j5, fl
 }
 
 
++/**
++ * 在6D空间中将机器人移动到指定的位置和姿态。
++ *
++ * @param _x 目标位置的x坐标。
++ * @param _y 目标位置的y坐标。
++ * @param _z 目标位置的z坐标。
++ * @param _a 目标姿态绕x轴的旋转。
++ * @param _b 目标姿态绕y轴的旋转。
++ * @param _c 目标姿态绕z轴的旋转。
++ *
++ * @return 如果机器人成功移动到目标位置，则为true；否则为false。
++ *
++ * @throws None
++ */
 bool DummyRobot::MoveL(float _x, float _y, float _z, float _a, float _b, float _c)
 {
     DOF6Kinematic::Pose6D_t pose6D(_x, _y, _z, _a, _b, _c);
@@ -158,12 +237,22 @@ bool DummyRobot::MoveL(float _x, float _y, float _z, float _a, float _b, float _
     return false;
 }
 
+/**
+ * Updates the joint angles for the DummyRobot.
+ *
+ * @throws ErrorType description of error
+ */
 void DummyRobot::UpdateJointAngles()
 {
     motorJ[ALL]->UpdateAngle();
 }
 
 
+/**
+ * Update the joint angles of the DummyRobot.
+ *
+ * @throws None
+ */
 void DummyRobot::UpdateJointAnglesCallback()
 {
     for (int i = 1; i <= 6; i++)
@@ -178,6 +267,13 @@ void DummyRobot::UpdateJointAnglesCallback()
 }
 
 
+/**
+ * Sets the joint speed of the DummyRobot.
+ *
+ * @param _speed the speed value to set for the joint speed
+ *
+ * @throws None
+ */
 void DummyRobot::SetJointSpeed(float _speed)
 {
     if (_speed < 0)_speed = 0;
@@ -187,6 +283,13 @@ void DummyRobot::SetJointSpeed(float _speed)
 }
 
 
+/**
+ * Sets the joint acceleration for the DummyRobot.
+ *
+ * @param _acc the desired joint acceleration value
+ *
+ * @throws ErrorType if an error occurs while setting the joint acceleration
+ */
 void DummyRobot::SetJointAcceleration(float _acc)
 {
     if (_acc < 0)_acc = 0;
@@ -197,6 +300,16 @@ void DummyRobot::SetJointAcceleration(float _acc)
 }
 
 
+/**
+ * Calibrates the home offset of the DummyRobot.
+ *
+ * Disables FixUpdate but does not disable motors. Moves the joints to an L-Pose
+ * [precisely]. Applies the home offset the first time. Goes to the resting
+ * pose. Applies the home offset the second time. Sets the current limits for
+ * motors 2 and 3. Reboots the robot.
+ *
+ * @throws ErrorType description of error
+ */
 void DummyRobot::CalibrateHomeOffset()
 {
     // Disable FixUpdate, but not disable motors
@@ -230,6 +343,11 @@ void DummyRobot::CalibrateHomeOffset()
 }
 
 
+/**
+ * Homing the dummy robot.
+ *
+ * @throws ErrorType description of error
+ */
 void DummyRobot::Homing()
 {
     float lastSpeed = jointSpeed;
@@ -244,6 +362,17 @@ void DummyRobot::Homing()
 }
 
 
+/**
+ * Resting function that sets the joint speed to 10, moves the robot to the
+ * rest pose, moves the robot to the target joints, and waits until the robot
+ * finishes moving. Finally, it sets the joint speed back to the last speed.
+ *
+ * @param None
+ *
+ * @return None
+ *
+ * @throws None
+ */
 void DummyRobot::Resting()
 {
     float lastSpeed = jointSpeed;
@@ -259,6 +388,13 @@ void DummyRobot::Resting()
 }
 
 
+/**
+ * Sets the enable/disable state of the DummyRobot.
+ *
+ * @param _enable the new enable/disable state
+ *
+ * @throws ErrorType description of error
+ */
 void DummyRobot::SetEnable(bool _enable)
 {
     motorJ[ALL]->SetEnable(_enable);
@@ -266,6 +402,11 @@ void DummyRobot::SetEnable(bool _enable)
 }
 
 
+/**
+ * Updates the 6D pose of the joint in the dummy robot.
+ *
+ * @throws ErrorType description of error
+ */
 void DummyRobot::UpdateJointPose6D()
 {
     dof6Solver->SolveFK(currentJoints, currentPose6D);
@@ -275,18 +416,35 @@ void DummyRobot::UpdateJointPose6D()
 }
 
 
+/**
+ * Checks if the DummyRobot is currently moving.
+ *
+ * @return True if the DummyRobot is moving, false otherwise.
+ */
 bool DummyRobot::IsMoving()
 {
     return jointsStateFlag != 0b1111110;
 }
 
 
+/**
+ * Returns whether the DummyRobot is enabled or not.
+ *
+ * @return true if the DummyRobot is enabled, false otherwise.
+ */
 bool DummyRobot::IsEnabled()
 {
     return isEnabled;
 }
 
 
+/**
+ * Set the command mode of the DummyRobot.
+ *
+ * @param _mode the command mode to set
+ *
+ * @throws ErrorType if the _mode is invalid
+ */
 void DummyRobot::SetCommandMode(uint32_t _mode)
 {
     if (_mode < COMMAND_TARGET_POINT_SEQUENTIAL ||
@@ -312,6 +470,16 @@ void DummyRobot::SetCommandMode(uint32_t _mode)
 }
 
 
+/**
+ * Constructor for the DummyHand class.
+ *
+ * @param _hcan pointer to the CAN_HandleTypeDef object
+ * @param _id   the ID of the node
+ *
+ * @return void
+ *
+ * @throws None
+ */
 DummyHand::DummyHand(CAN_HandleTypeDef* _hcan, uint8_t
 _id) :
     nodeID(_id), hcan(_hcan)
@@ -328,6 +496,13 @@ _id) :
 }
 
 
+/**
+ * Sets the angle of the DummyHand.
+ *
+ * @param _angle the angle to set, must be between 0 and 30 (inclusive)
+ *
+ * @throws ErrorType if an error occurs during setting the angle
+ */
 void DummyHand::SetAngle(float _angle)
 {
     if (_angle > 30)_angle = 30;
@@ -345,6 +520,13 @@ void DummyHand::SetAngle(float _angle)
 }
 
 
+/**
+ * Sets the maximum current for the DummyHand.
+ *
+ * @param _val the maximum current value to set
+ *
+ * @throws ErrorType if there is an error setting the maximum current
+ */
 void DummyHand::SetMaxCurrent(float _val)
 {
     if (_val > 1)_val = 1;
@@ -362,6 +544,13 @@ void DummyHand::SetMaxCurrent(float _val)
 }
 
 
+/**
+ * Sets the enable/disable flag for the DummyHand.
+ *
+ * @param _enable a boolean value to enable or disable the DummyHand
+ *
+ * @throws None
+ */
 void DummyHand::SetEnable(bool _enable)
 {
     if (_enable)
@@ -371,6 +560,15 @@ void DummyHand::SetEnable(bool _enable)
 }
 
 
+/**
+ * Pushes a command to the command handler.
+ *
+ * @param _cmd The command to be pushed.
+ *
+ * @return The available space in the command FIFO after pushing the command.
+ *
+ * @throws None.
+ */
 uint32_t DummyRobot::CommandHandler::Push(const std::string &_cmd)
 {
     osStatus_t status = osMessageQueuePut(commandFifo, _cmd.c_str(), 0U, 0U);
@@ -381,6 +579,11 @@ uint32_t DummyRobot::CommandHandler::Push(const std::string &_cmd)
 }
 
 
+/**
+ * Stops the robot immediately by disabling its movement, clearing the FIFO, and resetting the target joints.
+ *
+ * @throws ErrorType description of error
+ */
 void DummyRobot::CommandHandler::EmergencyStop()
 {
     context->MoveJ(context->currentJoints.a[0], context->currentJoints.a[1], context->currentJoints.a[2],
@@ -391,6 +594,15 @@ void DummyRobot::CommandHandler::EmergencyStop()
 }
 
 
+/**
+ * Pop a command from the command FIFO with an optional timeout.
+ *
+ * @param timeout the maximum time to wait for a command (in milliseconds)
+ *
+ * @return the command that was popped from the FIFO as a string
+ *
+ * @throws osErrorTimeout if no command is received within the timeout period
+ */
 std::string DummyRobot::CommandHandler::Pop(uint32_t timeout)
 {
     osStatus_t status = osMessageQueueGet(commandFifo, strBuffer, nullptr, timeout);
@@ -399,12 +611,28 @@ std::string DummyRobot::CommandHandler::Pop(uint32_t timeout)
 }
 
 
+/**
+ * Get the amount of free space in the command FIFO.
+ *
+ * @return The number of free slots available in the command FIFO.
+ *
+ * @throws None
+ */
 uint32_t DummyRobot::CommandHandler::GetSpace()
 {
     return osMessageQueueGetSpace(commandFifo);
 }
 
 
+/**
+ * Parses a command and performs corresponding actions based on the command mode.
+ *
+ * @param _cmd the command to be parsed
+ *
+ * @return the space in the commandFifo after parsing the command
+ *
+ * @throws None
+ */
 uint32_t DummyRobot::CommandHandler::ParseCommand(const std::string &_cmd)
 {
     uint8_t argNum;
@@ -514,18 +742,37 @@ uint32_t DummyRobot::CommandHandler::ParseCommand(const std::string &_cmd)
 }
 
 
+/**
+ * Clears the command FIFO.
+ *
+ * @throws ErrorType description of error
+ */
 void DummyRobot::CommandHandler::ClearFifo()
 {
     osMessageQueueReset(commandFifo);
 }
 
 
+/**
+ * Sets the tuning flag for the DummyRobot's TuningHelper.
+ *
+ * @param _flag the tuning flag to be set
+ *
+ * @throws ErrorType description of error (if applicable)
+ */
 void DummyRobot::TuningHelper::SetTuningFlag(uint8_t _flag)
 {
     tuningFlag = _flag;
 }
 
 
+/**
+ * Updates the tick of the DummyRobot TuningHelper.
+ *
+ * @param _timeMillis The time in milliseconds.
+ *
+ * @throws None
+ */
 void DummyRobot::TuningHelper::Tick(uint32_t _timeMillis)
 {
     time += PI * 2 * frequency * (float) _timeMillis / 1000.0f;
@@ -537,6 +784,14 @@ void DummyRobot::TuningHelper::Tick(uint32_t _timeMillis)
 }
 
 
+/**
+ * Set the frequency and amplitude of the DummyRobot.
+ *
+ * @param _freq the desired frequency value
+ * @param _amp the desired amplitude value
+ *
+ * @throws ErrorType if an error occurs while setting the frequency and amplitude
+ */
 void DummyRobot::TuningHelper::SetFreqAndAmp(float _freq, float _amp)
 {
     if (_freq > 5)_freq = 5;
