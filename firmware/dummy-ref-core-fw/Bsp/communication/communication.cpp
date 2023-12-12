@@ -23,6 +23,13 @@ const osThreadAttr_t commTask_attributes = {
     .priority = (osPriority_t) osPriorityNormal,
 };
 
+/**
+ * Initializes the communication module.
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void InitCommunication(void)
 {
     // Start command handling thread

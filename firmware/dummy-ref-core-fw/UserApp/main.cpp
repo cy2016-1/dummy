@@ -9,7 +9,7 @@ MPU6050 mpu6050(&hi2c1);
 Timer timerCtrlLoop(&htim7, 200);
 // 2x2-channel PWMs, used htim9 & htim12, each has 2-channel outputs
 PWM pwm(21000, 21000);
-// Robot instance
+// Robot instance 
 DummyRobot dummy(&hcan1);
 
 
@@ -27,13 +27,13 @@ void ThreadControlLoopFixUpdate(void* argument)
             // Send control command to Motors & update Joint states
             switch (dummy.commandMode)
             {
-                case DummyRobot::COMMAND_TARGET_POINT_SEQUENTIAL:
-                case DummyRobot::COMMAND_TARGET_POINT_INTERRUPTABLE:
-                case DummyRobot::COMMAND_CONTINUES_TRAJECTORY:
-                    dummy.MoveJoints(dummy.targetJoints);
-                    dummy.UpdateJointPose6D();
+                case DummyRobot::COMMAND_TARGET_POINT_SEQUENTIAL:// 如果是顺序轨迹，发送控制指令到电机
+                case DummyRobot::COMMAND_TARGET_POINT_INTERRUPTABLE:// 如果是中断轨迹，发送控制指令到电机
+                case DummyRobot::COMMAND_CONTINUES_TRAJECTORY: // 如果是连续轨迹，发送控制指令到电机
+                    dummy.MoveJoints(dummy.targetJoints); // Update Joint states
+                    dummy.UpdateJointPose6D(); // Update Pose6D
                     break;
-                case DummyRobot::COMMAND_MOTOR_TUNING:
+                case DummyRobot::COMMAND_MOTOR_TUNING: // 如果是电机调试模式，发送控制指令到电机
                     dummy.tuningHelper.Tick(10);
                     dummy.UpdateJointPose6D();
                     break;
@@ -149,11 +149,11 @@ void Main(void)
     oled.Init();
     pwm.Start();
 
-    // Init & Run User Threads.
+    // Init & Run User Threads.初始化并运行用户线程
     const osThreadAttr_t controlLoopTask_attributes = {
         .name = "ControlLoopFixUpdateTask",
         .stack_size = 2000,
-        .priority = (osPriority_t) osPriorityRealtime,
+        .priority = (osPriority_t) osPriorityRealtime,//设置优先级为最高
     };
     controlLoopFixUpdateHandle = osThreadNew(ThreadControlLoopFixUpdate, nullptr,
                                              &controlLoopTask_attributes);
@@ -161,7 +161,7 @@ void Main(void)
     const osThreadAttr_t ControlLoopUpdateTask_attributes = {
         .name = "ControlLoopUpdateTask",
         .stack_size = 2000,
-        .priority = (osPriority_t) osPriorityNormal,
+        .priority = (osPriority_t) osPriorityNormal,//设置优先级为中间
     };
     ControlLoopUpdateHandle = osThreadNew(ThreadControlLoopUpdate, nullptr,
                                           &ControlLoopUpdateTask_attributes);
