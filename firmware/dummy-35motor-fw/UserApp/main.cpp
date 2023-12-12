@@ -27,6 +27,9 @@ void Main()
     nodeID |= !HAL_GPIO_ReadPin(GPIOA, ID2_Pin) << 2;
     defaultNodeID = nodeID;
 
+    printf("main.cpp start!\r\n");
+
+
     /*---------- Apply EEPROM Settings ----------*/
     // Setting priority is EEPROM > Motor.h
     EEPROM eeprom;

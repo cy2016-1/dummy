@@ -167,7 +167,7 @@ bool DummyRobot::MoveJ(float _j1, float _j2, float _j3, float _j4, float _j5, fl
 }
 
 
-+/**
+/**
 + * 在6D空间中将机器人移动到指定的位置和姿态。
 + *
 + * @param _x 目标位置的x坐标。

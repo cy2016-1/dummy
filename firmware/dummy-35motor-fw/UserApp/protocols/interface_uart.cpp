@@ -17,6 +17,7 @@ void OnUartCmd(uint8_t* _data, uint16_t _len)
             if (motor.controller->modeRunning != Motor::MODE_COMMAND_CURRENT)
                 motor.controller->SetCtrlMode(Motor::MODE_COMMAND_CURRENT);
             motor.controller->SetCurrentSetPoint((int32_t) (cur * 1000));
+            printf("cur motor =%.2f\r\n",cur * 1000);
             break;
         case 'v':
             token = strtok((char*) _data, "v");
@@ -28,6 +29,7 @@ void OnUartCmd(uint8_t* _data, uint16_t _len)
             }
             motor.controller->SetVelocitySetPoint(
                 (int32_t) (vel * (float) motor.MOTOR_ONE_CIRCLE_SUBDIVIDE_STEPS));
+            printf("vel motor =%.2f\r\n",vel * (float) motor.MOTOR_ONE_CIRCLE_SUBDIVIDE_STEPS);
             break;
         case 'p':
             token = strtok((char*) _data, "p");
