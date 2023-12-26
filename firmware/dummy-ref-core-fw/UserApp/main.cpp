@@ -9,7 +9,9 @@ MPU6050 mpu6050(&hi2c1);
 Timer timerCtrlLoop(&htim7, 200);
 // 2x2-channel PWMs, used htim9 & htim12, each has 2-channel outputs
 PWM pwm(21000, 21000);
-// Robot instance 
+
+RGB rgb(0);
+// Robot instance
 DummyRobot dummy(&hcan1);
 
 
@@ -27,13 +29,13 @@ void ThreadControlLoopFixUpdate(void* argument)
             // Send control command to Motors & update Joint states
             switch (dummy.commandMode)
             {
-                case DummyRobot::COMMAND_TARGET_POINT_SEQUENTIAL:// 如果是顺序轨迹，发送控制指令到电机
-                case DummyRobot::COMMAND_TARGET_POINT_INTERRUPTABLE:// 如果是中断轨迹，发送控制指令到电机
-                case DummyRobot::COMMAND_CONTINUES_TRAJECTORY: // 如果是连续轨迹，发送控制指令到电机
-                    dummy.MoveJoints(dummy.targetJoints); // Update Joint states
-                    dummy.UpdateJointPose6D(); // Update Pose6D
+                case DummyRobot::COMMAND_TARGET_POINT_SEQUENTIAL:
+                case DummyRobot::COMMAND_TARGET_POINT_INTERRUPTABLE:
+                case DummyRobot::COMMAND_CONTINUES_TRAJECTORY:
+                    dummy.MoveJoints(dummy.targetJoints);
+                    dummy.UpdateJointPose6D();
                     break;
-                case DummyRobot::COMMAND_MOTOR_TUNING: // 如果是电机调试模式，发送控制指令到电机
+                case DummyRobot::COMMAND_MOTOR_TUNING:
                     dummy.tuningHelper.Tick(10);
                     dummy.UpdateJointPose6D();
                     break;
@@ -127,6 +129,29 @@ void OnTimer7Callback()
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
+osThreadId_t rgbTaskHandle;
+void ThreadRGBUpdate(void* argument) {
+    for (;;) {
+        if (dummy.GetRGBEnabled())
+        {
+            rgb.Run((RGB::Rgb_style_t)dummy.GetRGBMode());
+            osDelay(30);
+        }else
+        {
+            rgb.Run(RGB::ALLOff);
+            osDelay(30);
+        }
+    }
+}
+
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim->Instance==TIM2)
+    {
+        HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_4);
+        rgb.Interrupt(1);
+    }
+}
 
 /* Default Entry -------------------------------------------------------*/
 void Main(void)
@@ -149,11 +174,11 @@ void Main(void)
     oled.Init();
     pwm.Start();
 
-    // Init & Run User Threads.初始化并运行用户线程
+    // Init & Run User Threads.
     const osThreadAttr_t controlLoopTask_attributes = {
         .name = "ControlLoopFixUpdateTask",
         .stack_size = 2000,
-        .priority = (osPriority_t) osPriorityRealtime,//设置优先级为最高
+        .priority = (osPriority_t) osPriorityRealtime,
     };
     controlLoopFixUpdateHandle = osThreadNew(ThreadControlLoopFixUpdate, nullptr,
                                              &controlLoopTask_attributes);
@@ -161,7 +186,7 @@ void Main(void)
     const osThreadAttr_t ControlLoopUpdateTask_attributes = {
         .name = "ControlLoopUpdateTask",
         .stack_size = 2000,
-        .priority = (osPriority_t) osPriorityNormal,//设置优先级为中间
+        .priority = (osPriority_t) osPriorityNormal,
     };
     ControlLoopUpdateHandle = osThreadNew(ThreadControlLoopUpdate, nullptr,
                                           &ControlLoopUpdateTask_attributes);
@@ -172,6 +197,13 @@ void Main(void)
         .priority = (osPriority_t) osPriorityNormal,   // should >= Normal
     };
     oledTaskHandle = osThreadNew(ThreadOledUpdate, nullptr, &oledTask_attributes);
+
+    const osThreadAttr_t rgbTask_attributes = {
+            .name = "RGBTask",
+            .stack_size = 2000,
+            .priority = (osPriority_t) osPriorityNormal,   // should >= Normal
+    };
+    rgbTaskHandle = osThreadNew(ThreadRGBUpdate, nullptr, &rgbTask_attributes);
 
     // Start Timer Callbacks.
     timerCtrlLoop.SetCallback(OnTimer7Callback);
