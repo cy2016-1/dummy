@@ -131,7 +131,9 @@ void OnTimer7Callback()
 
 osThreadId_t rgbTaskHandle;
 void ThreadRGBUpdate(void* argument) {
+    float uDuty=0.00;
     for (;;) {
+
         if (dummy.GetRGBEnabled())
         {
             rgb.Run((RGB::Rgb_style_t)dummy.GetRGBMode());
@@ -140,6 +142,14 @@ void ThreadRGBUpdate(void* argument) {
         {
             rgb.Run(RGB::ALLOff);
             osDelay(30);
+        }
+        //power LED
+        if(uDuty<=1.0){
+        pwm.SetDuty(PWM::CH_ALL, uDuty);
+            osDelay(5);
+        uDuty+=0.01;
+        } else{
+            pwm.SetDuty(PWM::CH_ALL, 0);
         }
     }
 }
@@ -211,6 +221,8 @@ void Main(void)
 
     // System started, light switch-led up.
     Respond(*uart4StreamOutputPtr, "[sys] Heap remain: %d Bytes\n", xPortGetMinimumEverFreeHeapSize());
-    pwm.SetDuty(PWM::CH_A1, 0.5);
+    rgb.Run(RGB::BLINK);
+    osDelay(30);
+    //pwm.SetDuty(PWM::CH_A1, 0.5);
 }
 

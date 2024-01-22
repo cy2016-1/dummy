@@ -158,7 +158,7 @@ public:
             g = 255 * ( e / 10 ) + 0 * ( 1.0 - e / 10 );
             b = 255 * ( e / 10 ) + 0 * ( 1.0 - e / 10 );
             for(uint16_t j=0;j<12;j++)
-                if((j%1)==0)
+                if((j%2)==0)
                 {
                     Set_LED(j, r, g, b);
                     WS2812_Send();
@@ -171,7 +171,7 @@ public:
         }
         else if(effStep < 53.6) {
             for(uint16_t j=0;j<MAX_LED;j++)
-                if((j%1)==0)
+                if((j%2)==0)
                 {
                     Set_LED(j, 255, 255, 255);
                     WS2812_Send();
@@ -188,7 +188,7 @@ public:
             g = 0 * ( e / 10 ) + 255 * ( 1.0 - e / 10 );
             b = 0 * ( e / 10 ) + 255 * ( 1.0 - e / 10 );
             for(uint16_t j=0;j<MAX_LED;j++)
-                if((j%1)==0)
+                if((j%2)==0)
                 {
                     Set_LED(j, r, g, b);
                     WS2812_Send();
@@ -218,7 +218,7 @@ public:
         g = ( e ) * 255 + 0 * ( 1.0 - e );
         b = ( e ) * 255 + 0 * ( 1.0 - e );
         for(uint16_t j=0;j<MAX_LED;j++) {
-            if((j % 1) == 0)
+            if((j % 2) == 0)
             {
                 Set_LED(j, r, g, b);
                 WS2812_Send();
@@ -237,7 +237,7 @@ public:
         uint8_t r,g,b;
         switch (color){
             case ALLRed:
-                r = 100;
+                r = 255;
                 g = 0;
                 b = 0;
                 break;
